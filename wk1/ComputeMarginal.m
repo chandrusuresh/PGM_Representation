@@ -28,6 +28,35 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 M = struct('var', [], 'card', [], 'val', []); % Returns empty factor. Change this.
+% M.var = V;
+% 
+Jt = ComputeJointDistribution(F);
 
+if isempty(E)
+    M = Jt;
+    return;
+end
+
+assignments = IndexToAssignment(1:prod(Jt.card),Jt.card);
+el_cols = [];
+rowNum = [];
+for i = 1:size(E,1)
+    colNum = find(Jt.var == E(i,1));
+    el_cols(i) = colNum;
+    if isempty(rowNum)
+        rowNum = find(assignments(:,colNum) == E(i,2));
+    else
+        rowNum = intersect(rowNum,find(assignments(:,colNum) == E(i,2)));
+    end
+end
+
+M.val = Jt.val(rowNum);
+M.var = Jt.var;
+M.var(el_cols) = [];
+for i = 1:length(M.var)
+    ind = find(Jt.var == M.var(i));
+    M.card(i) = Jt.card(ind);
+end
+M.val = M.val/sum(M.val);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end

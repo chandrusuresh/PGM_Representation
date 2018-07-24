@@ -26,7 +26,6 @@ function Joint = ComputeJointDistribution(F)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
 Joint = struct('var', [], 'card', [], 'val', []); % Returns empty factor. Change this.
-Joint.map = {}
 for i = 1:length(F)
     for j = 1:length(F(i).var)
         ind = find(Joint.var == F(i).var(j));
@@ -42,16 +41,32 @@ assignments = IndexToAssignment(1:prod(Joint.card),Joint.card);
 for i = 1:size(assignments,1)
     jt_prob = 1.0;
     for j = 1:size(assignments,2)
-        if isempty(Joint.map{j})
-            prob = F(Joint.map{j}[1]).val(assignments(i,j));
-        else
-            %% Get Evidence matrix
-            for k = 1:length(F(Joint.map{j}[1]).var)
-                E(k,:) = [F(Joint.map{j}[1]).var(k),assignments(i,F(Joint.map{j}[1]).var(k))];
+% %         [i,j]
+%         if i == 33 && j == 12
+%             keyboard
+%         end
+        map = 0;
+        for k = 1:length(F)
+            if F(k).var(1) == Joint.var(j)
+                map = k;
+                asgn = zeros(length(F(k).var),1);
+                for k1 = 1:length(F(k).var)
+                    ind1 = find(Joint.var == F(k).var(k1));
+                    asgn(k1) = assignments(i,ind1);
+                end
+                Ev = [F(k).var', asgn];
+                break;
             end
-            E = sortrows(E,1);
-            newF = ObserveEvidence(F(Joint.map{j}[1]), E);
-            prob = newF.val(find(newF.val > 0));
+        end
+        if map == 0
+            keyboard
+        end
+        newF = ObserveEvidence(F(map), Ev);
+        ind_nonZeroProb = find(newF.val > 0);
+        if ~isempty(ind_nonZeroProb)
+            prob = newF.val(ind_nonZeroProb);
+        else
+            prob = 0;
         end
         jt_prob = jt_prob*prob;
     end

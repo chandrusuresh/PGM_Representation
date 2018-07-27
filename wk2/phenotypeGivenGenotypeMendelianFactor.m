@@ -39,9 +39,23 @@ phenotypeFactor = struct('var', [], 'card', [], 'val', []);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 % Fill in phenotypeFactor.var.  This should be a 1-D row vector.
+phenotypeFactor.var = [phenotypeVar,genotypeVar];
 % Fill in phenotypeFactor.card.  This should be a 1-D row vector.
+phenotypeFactor.card = [2,3];
 
 phenotypeFactor.val = zeros(1, prod(phenotypeFactor.card));
 % Replace the zeros in phentoypeFactor.val with the correct values.
 
+assignments = IndexToAssignment(1:prod(phenotypeFactor.card),phenotypeFactor.card);
+
+if isDominant
+    ind1 = find(assignments(:,2) ~= 3 & assignments(:,1) == 1);
+    ind2 = find(assignments(:,2) == 3 & assignments(:,1) == 2);
+else
+    ind1 = find(assignments(:,2) ~= 3 & assignments(:,1) == 2);
+    ind2 = find(assignments(:,2) == 3 & assignments(:,1) == 1);
+end
+ind = [reshape(ind1,1,length(ind1)),reshape(ind2,1,length(ind2))];
+phenotypeFactor.val(ind) = 1.0;
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

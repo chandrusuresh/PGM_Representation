@@ -38,6 +38,9 @@ function phenotypeFactor = constructSigmoidPhenotypeFactor(alleleWeights, geneCo
 %   having each phenotype for each allele combination (note that this is 
 %   the FULL CPD with no evidence observed)
 
+numGenes = length(geneCopyVarOneList);
+numAlleles = length(alleleWeights{1});
+
 phenotypeFactor = struct('var', [], 'card', [], 'val', []);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,9 +49,32 @@ phenotypeFactor = struct('var', [], 'card', [], 'val', []);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 % Fill in phenotypeFactor.var.  This should be a 1-D row vector.
+phenotypeFactor.var = [phenotypeVar,reshape(geneCopyVarOneList,1,numGenes), reshape(geneCopyVarTwoList,1,numGenes)];
+
 % Fill in phenotypeFactor.card.  This should be a 1-D row vector.
+phenotypeFactor.card = [2,repmat(length(geneCopyVarOneList),[1,length(alleleWeights{1})]),repmat(length(geneCopyVarTwoList),[1,length(alleleWeights{2})])];
 
 phenotypeFactor.val = zeros(1, prod(phenotypeFactor.card));
 % Replace the zeros in phentoypeFactor.val with the correct values.
+
+assignments = IndexToAssignment(1:prod(phenotypeFactor.card),phenotypeFactor.card);
+
+for i = 1:size(assignments,1)/2
+    z = 0;
+    for j = 1:length(alleleWeights)
+        wt = alleleWeights{j};
+        if mod(j,numGenes) == 1
+            GjA1 = assignments((i-1)*2+1,2);
+            GjA2 = assignments((i-1)*2+1,4);
+        else
+            GjA1 = assignments((i-1)*2+1,3);
+            GjA2 = assignments((i-1)*2+1,5);
+        end
+        z = z + wt(GjA1);
+        z = z + wt(GjA2);
+    end
+    phenotypeFactor.val((i-1)*2+1) = computeSigmoid(z);
+    phenotypeFactor.val((i)*2) = 1-phenotypeFactor.val((i-1)*2+1);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

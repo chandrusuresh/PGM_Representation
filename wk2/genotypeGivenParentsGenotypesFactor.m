@@ -57,9 +57,37 @@ genotypeFactor = struct('var', [], 'card', [], 'val', []);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 % Fill in genotypeFactor.var.  This should be a 1-D row vector.
+genotypeFactor.var = [genotypeVarChild, genotypeVarParentOne, genotypeVarParentTwo];
+
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
+card = [size(genotypesToAlleles,1)*ones(1,length(genotypeFactor.var))];
+genotypeFactor.card = card;
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
+
+assignments = IndexToAssignment(1:prod(genotypeFactor.card),genotypeFactor.card);
+
+for val_id = 1:size(assignments,1)
+    i = assignments(val_id,1);
+    j = assignments(val_id,2);
+    k = assignments(val_id,3);
+
+    c = genotypesToAlleles(i,:);
+    p(1,:) = genotypesToAlleles(j,:);
+	p(2,:) = genotypesToAlleles(k,:);
+
+    GenoTypes = [];
+    for i = 1:length(p(1,:))
+        for j = 1:length(p(2,:))
+            GenoTypes = [GenoTypes,allelesToGenotypes(p(1,i),p(2,j))];
+        end
+    end
+    len_ind = length(find(GenoTypes == assignments(val_id,1)));
+    prob = len_ind/length(GenoTypes);
+%     [c,p(1,:),p(2,:),prob]
+    genotypeFactor.val(val_id) = prob;
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

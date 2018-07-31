@@ -27,5 +27,10 @@ end
 factors = repmat(struct('var', [], 'card', [], 'val', []), n - 1, 1);
 
 % Your code here:
+for i = 1:n-1
+    factors(i).var = [i,i+1];
+    factors(i).card = K*ones(1,length(factors(i).var));
+    factors(i).val = reshape(pairwiseModel,[prod(factors(i).card),1]);
+end
 
 end

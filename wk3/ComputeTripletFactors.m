@@ -28,5 +28,14 @@ end
 factors = repmat(struct('var', [], 'card', [], 'val', []), n - 2, 1);
 
 % Your code here:
-
+for i = 1:n-2
+    factors(i).var = [i,i+1,i+2];
+    factors(i).card = K*ones(1,length(factors(i).var));
+    val = ones(factors(i).card);
+    for j = 1:length(tripletList)
+        ind = tripletList(j).chars;
+        val(ind(1),ind(2),ind(3)) = tripletList(j).factorVal;
+    end
+    factors(i).val = reshape(val,[prod(factors(i).card),1]);
+end
 end

@@ -39,45 +39,9 @@ for i = 1:size(E, 1),
             % Hint: You might find it helpful to use IndexToAssignment
             %       and SetValueOfAssignment
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Fj_val = zeros(size(F(j).val));
-            map = [];
-            for k = 1:length(F(j).var),
-                tmp = find(E(:,1) == F(j).var(k));
-                if isempty(tmp)
-                    tmp = (1:F(j).card(k))';
-                    if isempty(map)
-                        map = tmp;
-                    else
-                        if size(map,1) >= length(tmp)
-                            map1 = cell(size(tmp));
-                            map2 = [];
-                            for ii = 1:length(tmp)
-                                map1{ii} = [map,repmat(tmp(ii),[size(map,1),1])];
-                                map2 = [map2;map1{ii}];
-                            end
-                            map = map2;
-                        else
-                            map = [repmat(map,size(tmp)),tmp];
-                        end                        
-                    end
-                else
-                    if size(map,1) > length(tmp)
-                        if length(tmp) == 1
-                            map = [map,E(tmp,2)*ones(size(map,1),1)];
-                        end
-                    else
-                        map = [map,E(tmp,2)];
-                    end
-                end
-            end;
-%            assignment = [];
-%            for k = 1:size(map,1)
-%                assignment(k,:) = E(map(k,:),2);
-%            end
-            assignment = map;
-            indices = AssignmentToIndex(assignment,F(j).card);
-            Fj_val(indices) = F(j).val(indices);
-            F(j).val = Fj_val;
+            assignment = IndexToAssignment(1:prod(F(j).card),F(j).card);
+            ind1 = find(assignment(:,indx) ~= x);
+            F(j) = SetValueOfAssignment(F(j),assignment(ind1,:),0.0);
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 				% Check validity of evidence / resulting factor

@@ -28,61 +28,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 M = struct('var', [], 'card', [], 'val', []); % Returns empty factor. Change this.
-% M.var = V;
-% 
-Jt = ComputeJointDistribution(F);
 
+F1 = ObserveEvidence(F, E);
+Jt = ComputeJointDistribution(F1);
 if isempty(E) && isempty(V)
     M = Jt;
     return;
 end
-
-assignments = IndexToAssignment(1:prod(Jt.card),Jt.card);
-el_cols = [];
-for i = 1:length(V)
-    colNum = find(Jt.var == V(i));
-    el_cols(i) = colNum;
-end
-M.var = Jt.var(el_cols);
-M.card = Jt.card(el_cols);
-
-rowNum = [];
-for i = 1:size(E,1)
-    colNum = find(Jt.var == E(i,1));
-    if isempty(rowNum)
-        rowNum = find(assignments(:,colNum) == E(i,2));
-    else
-        rowNum = intersect(rowNum,find(assignments(:,colNum) == E(i,2)));
-    end
-end
-if isempty(rowNum)
-    rowNum = 1:size(assignments,1);
-end
-final_assgn = IndexToAssignment(1:prod(M.card),M.card);
-final_rows = [];
-for i = 1:size(final_assgn,1)
-    for j = 1:size(final_assgn,2)
-        r = rowNum(find(assignments(rowNum,el_cols(j)) == final_assgn(i,j)));
-        if j == 1
-            rows = r;
-        else
-            rows = intersect(rows,r);
-        end
-    end
-    rows = reshape(rows,[1,length(rows)]);
-    if isempty(rows)
-        rows = zeros(1,size(final_rows,2));
-    end
-    final_rows = [final_rows;rows];
-end
-
-for i = 1:size(final_rows,1)
-    if sum(final_rows(i,:)) == 0
-        M.val(i) = 0.0;
-    else
-        M.val(i) = sum(Jt.val(final_rows(i,:)));
-    end
-end
+M = FactorMarginalization(Jt, setdiff(Jt.var,V));
 M.val = M.val/sum(M.val);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end

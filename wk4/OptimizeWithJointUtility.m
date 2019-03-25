@@ -20,29 +20,25 @@ function [MEU OptimalDecisionRule] = OptimizeWithJointUtility( I )
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  UF = struct();
-  UF.var = [];
-  UF.card = [];
-  for i = 1:length(I.UtilityFactors)
-      UF.var = [UF.var,I.UtilityFactors(i).var];
-      UF.card = [UF.card,I.UtilityFactors(i).card];
+  UF = I.UtilityFactors(1);
+  for i = 2:length(I.UtilityFactors)
+    UF = FactorSum(UF,I.UtilityFactors(i));
   end
-  [UF.var,ia] = unique(UF.var);
-  UF.card = UF.card(ia);
-  UF.val = zeros(1,prod(UF.card));
-  A_UF = IndexToAssignment(1:prod(UF.card),UF.card);
-  for i = 1:length(I.UtilityFactors)
-      cols = [];
-      for j = 1:length(I.UtilityFactors(i).var)
-          ind = find(UF.var == I.UtilityFactors(i).var(j));
-          cols = [cols,ind];
-      end
-      newA = A_UF(:,cols);
-      indices = AssignmentToIndex(newA,I.UtilityFactors(i).card);
-      UF.val = UF.val + I.UtilityFactors(i).val(indices);
-  end
-%   
-  I2 = I;
-  I2.UtilityFactors = UF;
-  [MEU,OptimalDecisionRule] = OptimizeMEU(I2);
+  
+  I.UtilityFactors = UF;
+  
+  EUF = CalculateExpectedUtilityFactor( I );
+  ed_ind = 0;
+  OptimalDecisionRule = EUF;
+  OptimalDecisionRule.val = zeros(size(EUF.val));
+  nDecisions = prod(I.DecisionFactors.card(2:end));
+  MEU = 0;
+  for i = 1:nDecisions
+    st_ind = (i-1)*nDecisions + 1;
+    ed_ind = st_ind - 1 + I.DecisionFactors.card(1);
+    val = EUF.val(st_ind:ed_ind);
+    ind = st_ind - 1 + find(val == max(val));
+    MEU = MEU + max(val);
+    OptimalDecisionRule.val(ind(1)) = 1;
+  end  
 end
